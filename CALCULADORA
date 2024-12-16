@@ -1,0 +1,145 @@
+import tkinter as tk
+from tkinter import messagebox
+
+# Funciones de cálculo
+def calcular_prisma(area_base, perimetro_base, altura):
+    area_lateral = perimetro_base * altura
+    area_total = (2 * area_base) + area_lateral
+    volumen = area_base * altura
+    return {"Área Lateral": area_lateral, "Área Total": area_total, "Volumen": volumen}
+
+def calcular_piramide(area_base, perimetro_base, altura, apotema):
+    area_lateral = (perimetro_base * apotema) / 2
+    area_total = area_base + area_lateral
+    volumen = (area_base * altura) / 3
+    return {"Área Lateral": area_lateral, "Área Total": area_total, "Volumen": volumen}
+
+# Animaciones
+def fade_in_label(label, text_var):
+    label.config(fg="#2f4f4f", textvariable=text_var)  # Cambia el color de texto
+    label.after(50, lambda: fade_in(label, 0.1))  # Inicia la animación con la opacidad inicial
+
+def fade_in(label, opacity=0.1):
+    if opacity < 1:
+        color = f"#{int(47 * opacity):02x}{int(79 * opacity):02x}{int(79 * opacity):02x}"
+        label.config(fg=color)
+        label.after(50, lambda: fade_in(label, opacity + 0.05))
+    else:
+        label.config(fg="#2f4f4f")  # Color final cuando termina el fade-in
+
+def calcular():
+    try:
+        area_base = float(entry_area_base.get())
+        perimetro_base = float(entry_perimetro_base.get())
+        altura = float(entry_altura.get())
+
+        if tipo_figura.get() == "piramide":
+            apotema = float(entry_apotema.get())
+            resultados = calcular_piramide(area_base, perimetro_base, altura, apotema)
+        elif tipo_figura.get() == "prisma":
+            resultados = calcular_prisma(area_base, perimetro_base, altura)
+        else:
+            messagebox.showerror("Error", "Selecciona una figura válida")
+            return
+
+        # Limpiar resultados antes de animar
+        resultado_text.set("")
+
+        # Animación de desvanecimiento de los resultados
+        fade_in_label(resultado_label, resultado_text)
+
+        # Pausa para permitir la animación antes de agregar los resultados
+        ventana.after(500, lambda: resultado_text.set("\n".join([f"{key}: {value:.2f}" for key, value in resultados.items()])))
+
+    except ValueError:
+        messagebox.showerror("Error", "Por favor, ingresa valores válidos")
+
+# Función para resaltar el botón al pasar el mouse
+def on_enter(e):
+    e.widget['bg'] = '#5a9bd5'
+
+def on_leave(e):
+    e.widget['bg'] = '#4682b4'
+
+# Función que maneja la aparición del apotema dependiendo de la figura
+def mostrar_apotema():
+    if tipo_figura.get() == "piramide":
+        label_apotema.grid(row=6, column=0, sticky="w", padx=20, pady=10)
+        entry_apotema.grid(row=6, column=1)
+        entry_apotema.focus()
+    else:
+        label_apotema.grid_forget()
+        entry_apotema.grid_forget()
+
+# Crear la ventana principal
+ventana = tk.Tk()
+ventana.title("Calculadora de Prisma y Pirámide")
+ventana.geometry("600x700")
+ventana.configure(bg="#f0f8ff")  # Fondo azul claro
+
+# Estilo
+font = ("Helvetica", 16)
+font_bold = ("Helvetica", 16, "bold")
+color_text = "#2f4f4f"
+color_resultado = "#000080"
+color_boton = "#4682b4"
+
+# Crear el marco principal
+frame_principal = tk.Frame(ventana, bg="#f0f8ff", bd=10, relief="solid", padx=20, pady=20)
+frame_principal.place(relx=0.5, rely=0.5, anchor="center")
+
+# Crear elementos de la interfaz
+tk.Label(frame_principal, text="Selecciona el tipo de figura:", font=font_bold, fg=color_text, bg="#f0f8ff").grid(row=0, column=0, columnspan=2, pady=20)
+tipo_figura = tk.StringVar()
+tipo_figura.set("prisma")
+tk.Radiobutton(frame_principal, text="Prisma", variable=tipo_figura, value="prisma", font=font, fg=color_text, bg="#f0f8ff", selectcolor="#4682b4", command=mostrar_apotema).grid(row=1, column=0, sticky="w", padx=20)
+tk.Radiobutton(frame_principal, text="Pirámide", variable=tipo_figura, value="piramide", font=font, fg=color_text, bg="#f0f8ff", selectcolor="#4682b4", command=mostrar_apotema).grid(row=2, column=0, sticky="w", padx=20)
+
+tk.Label(frame_principal, text="Área de la base (A_b):", font=font, fg=color_text, bg="#f0f8ff").grid(row=3, column=0, sticky="w", padx=20, pady=10)
+entry_area_base = tk.Entry(frame_principal, font=font, bd=2, relief="groove", width=20)
+entry_area_base.grid(row=3, column=1)
+
+tk.Label(frame_principal, text="Perímetro de la base (P_b):", font=font, fg=color_text, bg="#f0f8ff").grid(row=4, column=0, sticky="w", padx=20, pady=10)
+entry_perimetro_base = tk.Entry(frame_principal, font=font, bd=2, relief="groove", width=20)
+entry_perimetro_base.grid(row=4, column=1)
+
+tk.Label(frame_principal, text="Altura (h):", font=font, fg=color_text, bg="#f0f8ff").grid(row=5, column=0, sticky="w", padx=20, pady=10)
+entry_altura = tk.Entry(frame_principal, font=font, bd=2, relief="groove", width=20)
+entry_altura.grid(row=5, column=1)
+
+# Campo apotema para pirámide
+label_apotema = tk.Label(frame_principal, text="Apotema (a):", font=font, fg=color_text, bg="#f0f8ff")
+entry_apotema = tk.Entry(frame_principal, font=font, bd=2, relief="groove", width=20)
+
+# Función para resaltar el campo de entrada cuando está enfocado
+def on_focus_in(event):
+    event.widget.config(bg="#e6f2ff")  # Fondo azul claro cuando está enfocado
+
+def on_focus_out(event):
+    event.widget.config(bg="white")  # Fondo blanco cuando pierde el enfoque
+
+# Asociar los eventos de enfoque con las entradas
+entry_area_base.bind("<FocusIn>", on_focus_in)
+entry_area_base.bind("<FocusOut>", on_focus_out)
+entry_perimetro_base.bind("<FocusIn>", on_focus_in)
+entry_perimetro_base.bind("<FocusOut>", on_focus_out)
+entry_altura.bind("<FocusIn>", on_focus_in)
+entry_altura.bind("<FocusOut>", on_focus_out)
+entry_apotema.bind("<FocusIn>", on_focus_in)
+entry_apotema.bind("<FocusOut>", on_focus_out)
+
+# Botón para calcular
+boton_calcular = tk.Button(frame_principal, text="Calcular", command=calcular, font=font_bold, fg="white", bg=color_boton, relief="raised", padx=20, pady=10)
+boton_calcular.grid(row=7, column=0, columnspan=2, pady=20)
+boton_calcular.bind("<Enter>", on_enter)
+boton_calcular.bind("<Leave>", on_leave)
+
+# Etiqueta para mostrar los resultados
+resultado_text = tk.StringVar()
+resultado_label = tk.Label(frame_principal, text="Resultados:", font=font_bold, fg=color_text, bg="#f0f8ff")
+resultado_label.grid(row=8, column=0, columnspan=2, pady=10)
+resultado_value_label = tk.Label(frame_principal, textvariable=resultado_text, font=("Helvetica", 18, "bold"), fg=color_resultado, bg="#f0f8ff", bd=2, relief="groove", padx=10, pady=10, width=30)
+resultado_value_label.grid(row=9, column=0, columnspan=2)
+
+# Ejecutar la ventana
+ventana.mainloop()
